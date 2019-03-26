@@ -108,10 +108,17 @@
   [left right]
   (label
     (str (:label left) " or " (:label right))
-    (map->Parser { :parse (fn [state]
-                            (let [l-res ((:parse left) state)]
-                              (cond
-                                (is-success l-res) l-res
-                                (is-failure l-res) ((:parse right) state))))})))
+    (map->Parser {:parse (fn [state]
+                           (let [l-res ((:parse left) state)]
+                             (cond
+                               (is-success l-res) l-res
+                               (is-failure l-res) ((:parse right) state))))})))
 
 (def <|> or-else)
+
+(def success-parser (map->Parser {:parse #(->Success nil %)}))
+
+(defn opt
+  [parser]
+  (label (str "optional " (:label parser))
+    (<|> parser success-parser)))

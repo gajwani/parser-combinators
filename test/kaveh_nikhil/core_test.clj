@@ -75,3 +75,9 @@
     (let [p1 (p-char \A)
           p2 (p-char \B)]
       (is (= (->Failure "A or B" \C 2) (run (<|> p1 p2) (->State "ABC" 2)))))))
+
+(deftest optional
+  (testing "with result"
+    (is (= (->Success \A (->State "ABC" 1)) (run (opt (p-char \A)) (->State "ABC" 0)))))
+  (testing "without result"
+    (is (= (->Success nil (->State "BC" 0)) (run (opt (p-char \A)) (->State "BC" 0))))))
