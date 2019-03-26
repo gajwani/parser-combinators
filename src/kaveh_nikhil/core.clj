@@ -1,4 +1,5 @@
-(ns kaveh-nikhil.core)
+(ns kaveh-nikhil.core
+  (:require [clojure.string :as str]))
 
 (defrecord State [input pos])
 (defrecord Success [value state])
@@ -122,3 +123,8 @@
   [parser]
   (label (str "optional " (:label parser))
     (<|> parser success-parser)))
+
+(defn choice
+  [& parsers]
+  (label (str "choice of " (str/join ", " (map :label parsers)))
+    (reduce <|> parsers)))
