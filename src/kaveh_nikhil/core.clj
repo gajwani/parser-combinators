@@ -64,7 +64,7 @@
 
 (defn listify
   [& args]
-  (map :value args))
+  (flatten (map :value args)))
 
 (defn and-then
   [left right]
@@ -128,3 +128,8 @@
   [& parsers]
   (label (str "choice of " (str/join ", " (map :label parsers)))
     (reduce <|> parsers)))
+
+(defn all
+  [& parsers]
+  (label (str "all of " (str/join ", " (map :label parsers)))
+    (reduce >> parsers)))
