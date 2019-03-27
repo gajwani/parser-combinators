@@ -214,3 +214,7 @@
 (defn p-whitespace-char [] (<?> "whitespace char" (p-any-of \newline \space \tab)))
 
 (defn p-whitespace [] (<?> "whitespace" (one-or-more (p-whitespace-char))))
+
+(defn between
+  [left middle right]
+  (<?> "between" (>>* (*>> left middle) right)))

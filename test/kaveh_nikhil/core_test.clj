@@ -116,6 +116,14 @@
     (testing "success present multiple"
       (is (= (->Success '(\A \A \A) (->State "AAAB" 3)) (run parser (->State "AAAB" 0)))))))
 
+(deftest base-combinator-between
+  (testing "success"
+    (is (= (->Success \A (->State "'A'" 3)) (run (between (p-char \') (p-char \A) (p-char \')) (->State "'A'" 0)))))
+  (testing "another success"
+    (is (= (->Success "Hi" (->State "'Hi'" 4)) (run (between (p-char \') (p-string "Hi") (p-char \')) (->State "'Hi'" 0)))))
+  (testing "failure"
+    (is (= (->Failure "between" \B 1) (run (between (p-char \") (p-string "Hi") (p-char \")) (->State "\"Bye\"" 0))))))
+
 (deftest combinator-combinations
   (let [p1 (p-char \A)
         p2 (p-char \B)
