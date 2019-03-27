@@ -12,24 +12,24 @@
 
 (defn run [parser state] ((:parse parser) state))
 
-(defn label
-  [lbl parser]
-  (map->Parser {:label lbl
+(defn with-label
+  [label parser]
+  (map->Parser {:label label
                 :parse (fn [state]
                          (let [result ((:parse parser) state)]
                            (cond
                              (is-success result) result
-                             (is-failure result) (assoc result :label lbl))))}))
+                             (is-failure result) (assoc result :label label))))}))
 
-(def <?> label)
+(def <?> with-label)
 
 (defn satisfy
-  [pred lbl]
-  (label lbl
+  [pred label]
+  (<?> label
     (map->Parser {:parse (fn [state]
                            (let [current-char (nth (:input state) (:pos state))]
                              (if (pred current-char)
-                               (map->Success {:value current-char :state (assoc state :pos (+ 1 (:pos state)))})
+                               (map->Success {:value current-char :state (update-in state [:pos] inc)})
                                (map->Failure {:char current-char :pos (:pos state)}))))})))
 
 (defn p-char
@@ -68,7 +68,7 @@
 
 (defn and-then
   [left right]
-  (label
+  (<?>
     (str (:label left) " and " (:label right))
     (map->Parser {:parse (fn [state]
                            (let [l-res ((:parse left) state)]
@@ -83,7 +83,7 @@
 
 (defn and-then-left
   [left right]
-  (label
+  (<?>
     (str (:label left) " andl " (:label right))
     (map->Parser {:parse (fn [state]
                            (let [result ((:parse (>> left right)) state)]
@@ -95,7 +95,7 @@
 
 (defn and-then-right
   [left right]
-  (label
+  (<?>
     (str (:label left) " andr " (:label right))
     (map->Parser {:parse (fn [state]
                            (let [result ((:parse (>> left right)) state)]
@@ -107,7 +107,7 @@
 
 (defn or-else
   [left right]
-  (label
+  (<?>
     (str (:label left) " or " (:label right))
     (map->Parser {:parse (fn [state]
                            (let [l-res ((:parse left) state)]
@@ -121,15 +121,15 @@
 
 (defn opt
   [parser]
-  (label (str "optional " (:label parser))
+  (<?> (str "optional " (:label parser))
     (<|> parser success-parser)))
 
 (defn choice
   [& parsers]
-  (label (str "choice of " (str/join ", " (map :label parsers)))
+  (<?> (str "choice of " (str/join ", " (map :label parsers)))
     (reduce <|> parsers)))
 
 (defn all
   [& parsers]
-  (label (str "all of " (str/join ", " (map :label parsers)))
+  (<?> (str "all of " (str/join ", " (map :label parsers)))
     (reduce >> parsers)))
