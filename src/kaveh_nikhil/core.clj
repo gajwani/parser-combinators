@@ -64,7 +64,13 @@
 
 (defn listify
   [& args]
-  (flatten (map :value args)))
+  (map :value args))
+
+(defn flatify
+  [maybe-list]
+  (if (seq? maybe-list)
+    (remove nil? (flatten maybe-list))
+    maybe-list))
 
 (defn and-then
   [left right]
@@ -122,7 +128,7 @@
 (defn opt
   [parser]
   (<?> (str "optional " (:label parser))
-    (<|> parser success-parser)))
+    (<!> (<|> parser success-parser) flatify)))
 
 (defn choice
   [& parsers]
@@ -132,4 +138,4 @@
 (defn all
   [& parsers]
   (<?> (str "all of " (str/join ", " (map :label parsers)))
-    (reduce >> parsers)))
+    (<!> (reduce >> parsers) flatify)))

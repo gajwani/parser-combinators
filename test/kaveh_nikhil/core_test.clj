@@ -68,7 +68,9 @@
   (testing "with result"
     (is (= (->Success \A (->State "ABC" 1)) (run (opt (p-char \A)) (->State "ABC" 0)))))
   (testing "without result"
-    (is (= (->Success nil (->State "BC" 0)) (run (opt (p-char \A)) (->State "BC" 0))))))
+    (is (= (->Success nil (->State "BC" 0)) (run (opt (p-char \A)) (->State "BC" 0)))))
+  (testing "combine with and"
+    (is (= (->Success '(nil \B) (->State "BC" 1)) (run (>> (opt (p-char \A)) (p-char \B)) (->State "BC" 0))))))
 
 (deftest base-combinator-choice
   (let [p1 (p-char \A)
@@ -97,3 +99,19 @@
       (is (= (->Failure "all of A, B, C" \D 1) (run parser (->State "ADBC" 0)))))
     (testing "failure third"
       (is (= (->Failure "all of A, B, C" \D 2) (run parser (->State "ABDC" 0)))))))
+
+(deftest combinator-combinations
+  (let [p1 (p-char \A)
+        p2 (p-char \B)
+        p3 (p-char \C)
+        and-andl (>>* (>> p1 p2) p3)
+        opt-and (>> (opt p1) p2)
+        and-opt (opt (>> p1 p2))]
+    (testing "and-andl"
+      (is (= (->Success '(\A \B) (->State "ABC" 3)) (run and-andl (->State "ABC" 0)))))
+    (testing "optional-and"
+      (is (= (->Success '(nil \B) (->State "BC" 1)) (run opt-and (->State "BC" 0)))))
+    (testing "and-optional present"
+      (is (= (->Success '(\A \B) (->State "AB" 2)) (run and-opt (->State "AB" 0)))))
+    (testing "and-optional absent"
+      (is (= (->Success nil (->State "BB" 0)) (run and-opt (->State "BB" 0)))))))
