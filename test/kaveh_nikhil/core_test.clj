@@ -100,6 +100,13 @@
     (testing "failure third"
       (is (= (->Failure "all of A, B, C" \D 2) (run parser (->State "ABDC" 0)))))))
 
+(deftest base-combinator-zero-or-more
+  (let [parser (zero-or-more (p-char \A))]
+    (testing "success absent"
+      (is (= (->Success nil (->State "B" 0)) (run parser (->State "B" 0)))))
+    (testing "success present"
+      (is (= (->Success '(\A \A \A) (->State "AAAB" 3)) (run parser (->State "AAAB" 0)))))))
+
 (deftest combinator-combinations
   (let [p1 (p-char \A)
         p2 (p-char \B)
