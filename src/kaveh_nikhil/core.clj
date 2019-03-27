@@ -210,3 +210,7 @@
 (defn p-digit [] (<?> "digit" (apply p-any-of (char-range \0 \9))))
 
 (defn p-digits [] (<?> "digits" (one-or-more (p-digit))))
+
+(defn p-whitespace-char [] (<?> "whitespace char" (p-any-of \newline \space \tab)))
+
+(defn p-whitespace [] (<?> "whitespace" (one-or-more (p-whitespace-char))))
