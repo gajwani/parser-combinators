@@ -188,3 +188,9 @@
   (<?>
     (str "zero or more " (:label parser))
     (map->Parser {:parse (zero-or-more-parse parser)})))
+
+(defn one-or-more
+  [parser]
+  (<?>
+    (str "one or more " (:label parser))
+    (<!> (>> parser (zero-or-more parser)) flatify)))

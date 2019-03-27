@@ -107,6 +107,15 @@
     (testing "success present"
       (is (= (->Success '(\A \A \A) (->State "AAAB" 3)) (run parser (->State "AAAB" 0)))))))
 
+(deftest base-combinator-one-or-more
+  (let [parser (one-or-more (p-char \A))]
+    (testing "failure absent"
+      (is (= (->Failure "one or more A" \B 0) (run parser (->State "B" 0)))))
+    (testing "success present"
+      (is (= (->Success '(\A) (->State "AB" 1)) (run parser (->State "AB" 0)))))
+    (testing "success present multiple"
+      (is (= (->Success '(\A \A \A) (->State "AAAB" 3)) (run parser (->State "AAAB" 0)))))))
+
 (deftest combinator-combinations
   (let [p1 (p-char \A)
         p2 (p-char \B)
