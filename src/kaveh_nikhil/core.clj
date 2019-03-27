@@ -194,3 +194,7 @@
   (<?>
     (str "one or more " (:label parser))
     (<!> (>> parser (zero-or-more parser)) flatify)))
+
+(defn p-string
+  [string]
+  (<?> (str "string '" string "'") (>>% (apply all (map p-char string)) string)))

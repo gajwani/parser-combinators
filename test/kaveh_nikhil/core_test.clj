@@ -131,3 +131,10 @@
       (is (= (->Success '(\A \B) (->State "AB" 2)) (run and-opt (->State "AB" 0)))))
     (testing "and-optional absent"
       (is (= (->Success nil (->State "BB" 0)) (run and-opt (->State "BB" 0)))))))
+
+(deftest parser-string
+  (let [p1 (p-string "ABC")]
+    (testing "success"
+      (is (= (->Success "ABC" (->State "ABC" (count "ABC"))) (run p1 (->State "ABC" 0)))))
+    (testing "fail"
+      (is (= (->Failure "string 'ABC'" \B 2) (run p1 (->State "ABB" 0)))))))
