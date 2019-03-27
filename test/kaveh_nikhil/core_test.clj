@@ -133,8 +133,35 @@
       (is (= (->Success nil (->State "BB" 0)) (run and-opt (->State "BB" 0)))))))
 
 (deftest parser-string
-  (let [p1 (p-string "ABC")]
+  (let [parser (p-string "ABC")]
     (testing "success"
-      (is (= (->Success "ABC" (->State "ABC" (count "ABC"))) (run p1 (->State "ABC" 0)))))
+      (is (= (->Success "ABC" (->State "ABC" (count "ABC"))) (run parser (->State "ABC" 0)))))
     (testing "fail"
-      (is (= (->Failure "string 'ABC'" \B 2) (run p1 (->State "ABB" 0)))))))
+      (is (= (->Failure "string 'ABC'" \B 2) (run parser (->State "ABB" 0)))))))
+
+(deftest parser-any-of
+  (let [parser (p-any-of \Y \N \T \F)]
+    (testing "success first"
+      (is (= (->Success \Y (->State "YAB" 1)) (run parser (->State "YAB" 0)))))
+    (testing "success last"
+      (is (= (->Success \F (->State "FAB" 1)) (run parser (->State "FAB" 0)))))
+    (testing "fail"
+      (is (= (->Failure "any of Y, N, T, F" \A 0) (run parser (->State "ABC" 0)))))))
+
+(deftest parser-digit
+  (testing "success"
+    (is (= (->Success \0 (->State "0AB" 1)) (run (p-digit) (->State "0AB" 0)))))
+  (testing "another success"
+    (is (= (->Success \9 (->State "9AB" 1)) (run (p-digit) (->State "9AB" 0)))))
+  (testing "more success"
+    (is (= (->Success \7 (->State "7AB" 1)) (run (p-digit) (->State "7AB" 0)))))
+  (testing "fail"
+    (is (= (->Failure "digit" \A 0) (run (p-digit) (->State "ABC" 0))))))
+
+(deftest parser-digits
+  (testing "success"
+    (is (= (->Success '(\0 \1 \2) (->State "012AB" 3)) (run (p-digits) (->State "012AB" 0)))))
+  (testing "more success"
+    (is (= (->Success '(\7) (->State "7AB" 1)) (run (p-digits) (->State "7AB" 0)))))
+  (testing "fail"
+    (is (= (->Failure "digits" \A 0) (run (p-digits) (->State "ABC" 0))))))

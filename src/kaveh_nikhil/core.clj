@@ -198,3 +198,15 @@
 (defn p-string
   [string]
   (<?> (str "string '" string "'") (>>% (apply all (map p-char string)) string)))
+
+(defn p-any-of
+  [& characters]
+  (<?> (str "any of " (str/join ", " characters))
+    (apply choice (map p-char characters))))
+
+(defn char-range [start end]
+  (map char (range (int start) (inc (int end)))))
+
+(defn p-digit [] (<?> "digit" (apply p-any-of (char-range \0 \9))))
+
+(defn p-digits [] (<?> "digits" (one-or-more (p-digit))))
