@@ -28,7 +28,7 @@
 (def <?> with-label)
 
 (defn satisfy-parse
-  [pred label]
+  [pred]
   (fn [state]
     (let [current-char (nth (:input state) (:pos state))]
       (if (pred current-char)
@@ -38,7 +38,7 @@
 (defn satisfy
   [pred label]
   (<?> label
-    (map->Parser {:parse (satisfy-parse pred label)})))
+    (map->Parser {:parse (satisfy-parse pred)})))
 
 (defn p-char
   [ch]
