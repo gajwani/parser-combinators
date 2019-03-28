@@ -158,38 +158,38 @@
 
 (deftest parser-digit
   (testing "success"
-    (is (= (->Success \0 (->State "0AB" 1)) (run (p-digit) (->State "0AB" 0)))))
+    (is (= (->Success \0 (->State "0AB" 1)) (run p-digit (->State "0AB" 0)))))
   (testing "another success"
-    (is (= (->Success \9 (->State "9AB" 1)) (run (p-digit) (->State "9AB" 0)))))
+    (is (= (->Success \9 (->State "9AB" 1)) (run p-digit (->State "9AB" 0)))))
   (testing "more success"
-    (is (= (->Success \7 (->State "7AB" 1)) (run (p-digit) (->State "7AB" 0)))))
+    (is (= (->Success \7 (->State "7AB" 1)) (run p-digit (->State "7AB" 0)))))
   (testing "fail"
-    (is (= (->Failure "digit" \A 0) (run (p-digit) (->State "ABC" 0))))))
+    (is (= (->Failure "digit" \A 0) (run p-digit (->State "ABC" 0))))))
 
 (deftest parser-digits
   (testing "success"
-    (is (= (->Success '(\0 \1 \2) (->State "012AB" 3)) (run (p-digits) (->State "012AB" 0)))))
+    (is (= (->Success '(\0 \1 \2) (->State "012AB" 3)) (run p-digits (->State "012AB" 0)))))
   (testing "more success"
-    (is (= (->Success '(\7) (->State "7AB" 1)) (run (p-digits) (->State "7AB" 0)))))
+    (is (= (->Success '(\7) (->State "7AB" 1)) (run p-digits (->State "7AB" 0)))))
   (testing "fail"
-    (is (= (->Failure "digits" \A 0) (run (p-digits) (->State "ABC" 0))))))
+    (is (= (->Failure "digits" \A 0) (run p-digits (->State "ABC" 0))))))
 
 (deftest parser-whitespace-char
   (testing "success"
-    (is (= (->Success \space (->State " AB" 1)) (run (p-whitespace-char) (->State " AB" 0)))))
+    (is (= (->Success \space (->State " AB" 1)) (run p-whitespace-char (->State " AB" 0)))))
   (testing "another success"
-    (is (= (->Success \tab (->State "\tAB" 1)) (run (p-whitespace-char) (->State "\tAB" 0)))))
+    (is (= (->Success \tab (->State "\tAB" 1)) (run p-whitespace-char (->State "\tAB" 0)))))
   (testing "more success"
-    (is (= (->Success \newline (->State "\nAB" 1)) (run (p-whitespace-char) (->State "\nAB" 0)))))
+    (is (= (->Success \newline (->State "\nAB" 1)) (run p-whitespace-char (->State "\nAB" 0)))))
   (testing "fail"
-    (is (= (->Failure "whitespace char" \A 0) (run (p-whitespace-char) (->State "ABC" 0))))))
+    (is (= (->Failure "whitespace char" \A 0) (run p-whitespace-char (->State "ABC" 0))))))
 
 (deftest parser-whitespace
   (testing "success"
-    (is (= (->Success '(\space \tab \newline) (->State " \t\nAB" 3)) (run (p-whitespace) (->State " \t\nAB" 0)))))
+    (is (= (->Success '(\space \tab \newline) (->State " \t\nAB" 3)) (run p-whitespace (->State " \t\nAB" 0)))))
   (testing "another success"
-    (is (= (->Success '(\tab) (->State "\tAB" 1)) (run (p-whitespace) (->State "\tAB" 0)))))
+    (is (= (->Success '(\tab) (->State "\tAB" 1)) (run p-whitespace (->State "\tAB" 0)))))
   (testing "more success"
-    (is (= (->Success '(\newline \tab) (->State "\n\tAB" 2)) (run (p-whitespace) (->State "\n\tAB" 0)))))
+    (is (= (->Success '(\newline \tab) (->State "\n\tAB" 2)) (run p-whitespace (->State "\n\tAB" 0)))))
   (testing "fail"
-    (is (= (->Failure "whitespace" \A 0) (run (p-whitespace) (->State "ABC" 0))))))
+    (is (= (->Failure "whitespace" \A 0) (run p-whitespace (->State "ABC" 0))))))
