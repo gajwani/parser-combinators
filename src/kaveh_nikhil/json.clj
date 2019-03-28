@@ -1,9 +1,12 @@
 (ns kaveh-nikhil.json
-  (:require [kaveh-nikhil.core :refer :all]))
+  (:require [kaveh-nikhil.core :refer :all]
+            [clojure.string :as str]))
+
 
 (defrecord JNull [])
 (defrecord JBool [value])
 (defrecord JString [value])
+(defrecord JNumber [value])
 
 (def j-null (<?> "null" (>>% (p-string "null") (->JNull))))
 
@@ -36,3 +39,11 @@
 (def j-string
   (<?> "string"
     (<!> (between j-quote (zero-or-more j-char) j-quote) #(->JString (apply str %)))))
+
+(def j-opt-sign (opt (p-any-of \- \+)))
+(def j-int (>> j-opt-sign p-digits))
+(def j-opt-fraction (opt (>> (p-char \.) p-digits)))
+(def j-opt-exponent (opt (>> (p-any-of \e \E) j-int)))
+
+(def j-number
+  (<?> "number" (<!> (reduce >> [j-int j-opt-fraction j-opt-exponent]) #(->JNumber (Double. (str/join "" (flatify %)))))))

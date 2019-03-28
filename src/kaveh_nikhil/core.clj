@@ -3,7 +3,9 @@
 
 (defrecord State [input pos])
 (defrecord Success [value state])
-(defrecord Failure [label char pos])
+(defrecord Failure [label char pos desc])
+
+(defn failure [label char pos] (map->Failure {:label label :char char :pos pos}))
 
 (defrecord Parser [label parse])
 
@@ -30,10 +32,12 @@
 (defn satisfy-parse
   [pred]
   (fn [state]
-    (let [current-char (nth (:input state) (:pos state))]
-      (if (pred current-char)
-        (map->Success {:value current-char :state (update-in state [:pos] inc)})
-        (map->Failure {:char current-char :pos (:pos state)})))))
+    (if (>= (:pos state) (count (:input state)))
+      (map->Failure {:desc "eof"})
+      (let [current-char (nth (:input state) (:pos state))]
+        (if (pred current-char)
+          (map->Success {:value current-char :state (update-in state [:pos] inc)})
+          (map->Failure {:char current-char :pos (:pos state)}))))))
 
 (defn satisfy
   [pred label]

@@ -6,13 +6,15 @@
   (testing "success"
     (is (= (->Success \A (->State "AB" 1)) (run (p-char \A) (->State "AB" 0)))))
   (testing "failure"
-    (is (= (->Failure "B" \A 0) (run (p-char \B) (->State "AB" 0)))))
+    (is (= (failure "B" \A 0) (run (p-char \B) (->State "AB" 0)))))
+  (testing "failure with end of input"
+    (is (= (map->Failure {:label "B" :desc "eof"}) (run (p-char \B) (->State "" 0)))))
   (testing "label"
-    (is (= (->Failure "lbl" \A 0) (run (<?> "lbl" (p-char \B)) (->State "AB" 0)))))
+    (is (= (failure "lbl" \A 0) (run (<?> "lbl" (p-char \B)) (->State "AB" 0)))))
   (testing "position success"
     (is (= (->Success \A (->State "BBAB" 3)) (run (p-char \A) (->State "BBAB" 2)))))
   (testing "position failure"
-    (is (= (->Failure "A" \B 2) (run (p-char \A) (->State "BBBA" 2))))))
+    (is (= (failure "A" \B 2) (run (p-char \A) (->State "BBBA" 2))))))
 
 (deftest base-combinator-map
   (testing "map function"
@@ -27,9 +29,9 @@
     (testing "success"
       (is (= (->Success '(\A \B) (->State "ABC" 2)) (run (>> p1 p2) (->State "ABC" 0)))))
     (testing "first failure"
-      (is (= (->Failure "A and B" \B 0) (run (>> p1 p2) (->State "BCA" 0)))))
+      (is (= (failure "A and B" \B 0) (run (>> p1 p2) (->State "BCA" 0)))))
     (testing "second failure"
-      (is (= (->Failure "A and B" \C 1) (run (>> p1 p2) (->State "ACB" 0)))))))
+      (is (= (failure "A and B" \C 1) (run (>> p1 p2) (->State "ACB" 0)))))))
 
 (deftest base-combinator-andl
   (let [p1 (p-char \A)
@@ -38,9 +40,9 @@
     (testing "success"
       (is (= (->Success \A (->State "ABC" 2)) (run parser (->State "ABC" 0)))))
     (testing "first failure"
-      (is (= (->Failure "A andl B" \B 0) (run parser (->State "BCA" 0)))))
+      (is (= (failure "A andl B" \B 0) (run parser (->State "BCA" 0)))))
     (testing "second failure"
-      (is (= (->Failure "A andl B" \C 1) (run parser (->State "ACB" 0)))))))
+      (is (= (failure "A andl B" \C 1) (run parser (->State "ACB" 0)))))))
 
 (deftest base-combinator-andr
   (let [p1 (p-char \A)
@@ -49,9 +51,9 @@
     (testing "success"
       (is (= (->Success \B (->State "ABC" 2)) (run parser (->State "ABC" 0)))))
     (testing "first failure"
-      (is (= (->Failure "A andr B" \B 0) (run parser (->State "BCA" 0)))))
+      (is (= (failure "A andr B" \B 0) (run parser (->State "BCA" 0)))))
     (testing "second failure"
-      (is (= (->Failure "A andr B" \C 1) (run parser (->State "ACB" 0)))))))
+      (is (= (failure "A andr B" \C 1) (run parser (->State "ACB" 0)))))))
 
 (deftest base-combinator-or
   (let [p1 (p-char \A)
@@ -62,7 +64,7 @@
     (testing "success right"
         (is (= (->Success \B (->State "ABC" 2)) (run parser (->State "ABC" 1)))))
     (testing "failure"
-        (is (= (->Failure "A or B" \C 2) (run parser (->State "ABC" 2)))))))
+        (is (= (failure "A or B" \C 2) (run parser (->State "ABC" 2)))))))
 
 (deftest base-combinator-optional
   (testing "with result"
@@ -84,7 +86,7 @@
     (testing "success third"
       (is (= (->Success \C (->State "ABC" 3)) (run parser (->State "ABC" 2)))))
     (testing "failure"
-      (is (= (->Failure "choice of A, B, C" \D 0) (run parser (->State "DABC" 0)))))))
+      (is (= (failure "choice of A, B, C" \D 0) (run parser (->State "DABC" 0)))))))
 
 (deftest base-combinator-sequence
   (let [p1 (p-char \A)
@@ -94,11 +96,11 @@
     (testing "success"
       (is (= (->Success '(\A \B \C) (->State "ABC" 3)) (run parser (->State "ABC" 0)))))
     (testing "failure first"
-      (is (= (->Failure "all of A, B, C" \D 0) (run parser (->State "DABC" 0)))))
+      (is (= (failure "all of A, B, C" \D 0) (run parser (->State "DABC" 0)))))
     (testing "failure second"
-      (is (= (->Failure "all of A, B, C" \D 1) (run parser (->State "ADBC" 0)))))
+      (is (= (failure "all of A, B, C" \D 1) (run parser (->State "ADBC" 0)))))
     (testing "failure third"
-      (is (= (->Failure "all of A, B, C" \D 2) (run parser (->State "ABDC" 0)))))))
+      (is (= (failure "all of A, B, C" \D 2) (run parser (->State "ABDC" 0)))))))
 
 (deftest base-combinator-zero-or-more
   (let [parser (zero-or-more (p-char \A))]
@@ -110,7 +112,7 @@
 (deftest base-combinator-one-or-more
   (let [parser (one-or-more (p-char \A))]
     (testing "failure absent"
-      (is (= (->Failure "one or more A" \B 0) (run parser (->State "B" 0)))))
+      (is (= (failure "one or more A" \B 0) (run parser (->State "B" 0)))))
     (testing "success present"
       (is (= (->Success '(\A) (->State "AB" 1)) (run parser (->State "AB" 0)))))
     (testing "success present multiple"
@@ -122,7 +124,7 @@
   (testing "another success"
     (is (= (->Success "Hi" (->State "'Hi'" 4)) (run (between (p-char \') (p-string "Hi") (p-char \')) (->State "'Hi'" 0)))))
   (testing "failure"
-    (is (= (->Failure "between" \B 1) (run (between (p-char \") (p-string "Hi") (p-char \")) (->State "\"Bye\"" 0))))))
+    (is (= (failure "between" \B 1) (run (between (p-char \") (p-string "Hi") (p-char \")) (->State "\"Bye\"" 0))))))
 
 (deftest combinator-combinations
   (let [p1 (p-char \A)
@@ -145,7 +147,7 @@
     (testing "success"
       (is (= (->Success "ABC" (->State "ABC" (count "ABC"))) (run parser (->State "ABC" 0)))))
     (testing "fail"
-      (is (= (->Failure "string 'ABC'" \B 2) (run parser (->State "ABB" 0)))))))
+      (is (= (failure "string 'ABC'" \B 2) (run parser (->State "ABB" 0)))))))
 
 (deftest parser-any-of
   (let [parser (p-any-of \Y \N \T \F)]
@@ -154,7 +156,7 @@
     (testing "success last"
       (is (= (->Success \F (->State "FAB" 1)) (run parser (->State "FAB" 0)))))
     (testing "fail"
-      (is (= (->Failure "any of Y, N, T, F" \A 0) (run parser (->State "ABC" 0)))))))
+      (is (= (failure "any of Y, N, T, F" \A 0) (run parser (->State "ABC" 0)))))))
 
 (deftest parser-digit
   (testing "success"
@@ -164,15 +166,17 @@
   (testing "more success"
     (is (= (->Success \7 (->State "7AB" 1)) (run p-digit (->State "7AB" 0)))))
   (testing "fail"
-    (is (= (->Failure "digit" \A 0) (run p-digit (->State "ABC" 0))))))
+    (is (= (failure "digit" \A 0) (run p-digit (->State "ABC" 0))))))
 
 (deftest parser-digits
   (testing "success"
     (is (= (->Success '(\0 \1 \2) (->State "012AB" 3)) (run p-digits (->State "012AB" 0)))))
   (testing "more success"
     (is (= (->Success '(\7) (->State "7AB" 1)) (run p-digits (->State "7AB" 0)))))
+  (testing "success with digits only"
+    (is (= (->Success '(\1 \2) (->State "12" 2)) (run p-digits (->State "12" 0)))))
   (testing "fail"
-    (is (= (->Failure "digits" \A 0) (run p-digits (->State "ABC" 0))))))
+    (is (= (failure "digits" \A 0) (run p-digits (->State "ABC" 0))))))
 
 (deftest parser-whitespace-char
   (testing "success"
@@ -182,7 +186,7 @@
   (testing "more success"
     (is (= (->Success \newline (->State "\nAB" 1)) (run p-whitespace-char (->State "\nAB" 0)))))
   (testing "fail"
-    (is (= (->Failure "whitespace char" \A 0) (run p-whitespace-char (->State "ABC" 0))))))
+    (is (= (failure "whitespace char" \A 0) (run p-whitespace-char (->State "ABC" 0))))))
 
 (deftest parser-whitespace
   (testing "success"
@@ -192,4 +196,4 @@
   (testing "more success"
     (is (= (->Success '(\newline \tab) (->State "\n\tAB" 2)) (run p-whitespace (->State "\n\tAB" 0)))))
   (testing "fail"
-    (is (= (->Failure "whitespace" \A 0) (run p-whitespace (->State "ABC" 0))))))
+    (is (= (failure "whitespace" \A 0) (run p-whitespace (->State "ABC" 0))))))
