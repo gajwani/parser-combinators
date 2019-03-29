@@ -69,9 +69,52 @@
 (deftest json-object
   (testing "simple"
     (is (= (->Success (->JObject {:foo (->JString "bar")}) (->State "{\"foo\":\"bar\"}" 13)) (run j-object (->State "{\"foo\":\"bar\"}" 0)))))
-  (testing "two keys"
-    (is (= (->Success (->JObject {:foo (->JString "bar") :baz (->JNumber 1.0)}) (->State "{\"foo\":\"bar\", \"baz\":1}" 22)) (run j-object (->State "{\"foo\":\"bar\", \"baz\":1}" 0)))))
+  (testing "multiple keys"
+    (let [input "{\"foo\":\"bar\", \"baz\": 1, \"quux\": true}"]
+      (is (= (->Success (->JObject {:foo (->JString "bar") :baz (->JNumber 1.0) :quux (->JBool true)}) (->State input 37)) (run j-object (->State input 0))))))
   (testing "nested object"
     (is (= (->Success (->JObject {:foo (->JObject {:baz (->JNumber 1.0)})}) (->State "{\"foo\" : {\"baz\": 1}}" 20)) (run j-object (->State "{\"foo\" : {\"baz\": 1}}" 0)))))
   (testing "fail"
     (is (= (failure "object" \] 9) (run j-object (->State "{\"foo\": 1]" 0))))))
+
+(defn long-str [& strings] (clojure.string/replace (clojure.string/join "\n" strings) #"'" "\""))
+(def big-json-input (long-str "{"
+                        "  'name' : 'FooBar',"
+                        "  'isMale' : true,"
+                        "  'bday' : {"
+                        "    'year': 2001,"
+                        "    'month': 12,"
+                        "    'day': 25"
+                        "  },"
+                        "  'favouriteColors' : ["
+                        "    'blue',"
+                        "    'green'"
+                        "  ]"
+                        "}"))
+
+(def big-json-result
+  (->JObject { :name (->JString "FooBar")
+               :isMale (->JBool true)
+               :bday (->JObject { :year (->JNumber 2001.0)
+                                  :month (->JNumber 12.0)
+                                  :day (->JNumber 25.0)})
+               :favouriteColors (->JArray [
+                                           (->JString "blue")
+                                           (->JString "green")])}))
+
+(deftest json-object-with-nested-objects
+  (testing "testing a large json object"
+    (is (= (->Success big-json-result (->State big-json-input 162)) (run j-object (->State e2e-json 0))))))
+
+(deftest json
+  (testing "a simple null value"
+    (is (= (->Success (->JNull) (->State "null" 4)) (run j-json (->State "null" 0)))))
+  (testing "a simple boolean value"
+    (is (= (->Success (->JBool true) (->State "true" 4)) (run j-json (->State "true" 0)))))
+  (testing "a simple string"
+    (is (= (->Success (->JString "miracle is near") (->State "\"miracle is near\"" 17)) (run j-json (->State "\"miracle is near\"" 0)))))
+  (testing "a simple number"
+    (is (= (->Success (->JNumber 12.345) (->State "12.345" 6)) (run j-json (->State "12.345" 0)))))
+  (testing "an array"
+    (let [input "[false, 1, \"fun\"]"]
+      (is (= (->Success (->JArray [(->JBool false) (->JNumber 1.0) (->JString "fun")]) (->State input 17)) (run j-json (->State input 0)))))))

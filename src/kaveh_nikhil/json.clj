@@ -1,6 +1,7 @@
 (ns kaveh-nikhil.json
   (:require [kaveh-nikhil.core :refer :all]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.pprint :as pprint]))
 
 (defrecord JNull [])
 (defrecord JBool [value])
@@ -85,8 +86,10 @@
 
 (defn j-object-mapper
   [key-value-pairs]
-  (into {} (map #(vector (keyword (first %)) (second %)) (remove nil? key-value-pairs))))
+  (into {} (map #(vector (keyword (first %)) (second %)) (partition 2 (flatify key-value-pairs)))))
 
 (def j-object
   (<?> "object"
     (<!> (between j-object-left j-object-keyvalues j-object-right) #(->JObject (j-object-mapper %)))))
+
+(def j-json (<?> "json" j-value))
