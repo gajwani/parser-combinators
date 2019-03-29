@@ -2,16 +2,14 @@
   (:require [kaveh-nikhil.core :refer :all]
             [clojure.string :as str]))
 
-
 (defrecord JNull [])
 (defrecord JBool [value])
 (defrecord JString [value])
 (defrecord JNumber [value])
+(defrecord JArray [value])
 
 (def j-null (<?> "null" (>>% (p-string "null") (->JNull))))
-
 (def j-bool (<?> "bool" (<|> (>>% (p-string "true") (->JBool true)) (>>% (p-string "false") (->JBool false)))))
-
 (def j-unescaped-char (satisfy #(and (not= \" %) (not= \\ %)) "unescaped char"))
 
 (def j-escaped-pairs
@@ -47,3 +45,21 @@
 
 (def j-number
   (<?> "number" (<!> (reduce >> [j-int j-opt-fraction j-opt-exponent]) #(->JNumber (Double. (str/join "" (flatify %)))))))
+
+(def j-spaces (zero-or-more p-whitespace))
+(def j-comma (>>* (p-char \,) j-spaces))
+
+(declare j-array)
+(def j-array-ref (map->Parser {:parse #((:parse j-array) %)}))
+
+(def j-value (choice j-null j-bool j-string j-number j-array-ref))
+
+(defn j-sep-by
+  [parser sep-parser]
+  (>> parser (zero-or-more (*>> sep-parser parser))))
+
+(def j-array-left (>>* (p-char \[) j-spaces))
+(def j-array-right (>>* (p-char \]) j-spaces))
+(def j-array-values (j-sep-by (>>* j-value j-spaces) j-comma))
+
+(def j-array (<!> (between j-array-left j-array-values j-array-right) #(->JArray (flatify %))))

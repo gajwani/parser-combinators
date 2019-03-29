@@ -55,3 +55,11 @@
       (is (= (->Success (->JNumber 4.5) (->State "45.0E-1" 7)) (run j-number (->State "45.0E-1" 0))))))
   (testing "failure"
     (is (= (failure "number" \A 0) (run j-number (->State "A" 0))))))
+
+(deftest json-array
+  (testing "simple"
+    (is (= (->Success (->JArray [(->JNumber 1.0) (->JNumber 2.0)]) (->State "[1, 2]" 6)) (run j-array (->State "[1, 2]" 0)))))
+  (testing "mix"
+    (is (= (->Success (->JArray [(->JBool false) (->JString "true")]) (->State "[false, \"true\"]" 15)) (run j-array (->State "[false, \"true\"]" 0)))))
+  (testing "array of array"
+    (is (= (->Success (->JArray [(->JNumber 1.0) (->JArray [(->JNumber 2.0)])]) (->State "[1, [2]]" 8)) (run j-array (->State "[1, [2]]" 0))))))
