@@ -62,4 +62,16 @@
   (testing "mix"
     (is (= (->Success (->JArray [(->JBool false) (->JString "true")]) (->State "[false, \"true\"]" 15)) (run j-array (->State "[false, \"true\"]" 0)))))
   (testing "array of array"
-    (is (= (->Success (->JArray [(->JNumber 1.0) (->JArray [(->JNumber 2.0)])]) (->State "[1, [2]]" 8)) (run j-array (->State "[1, [2]]" 0))))))
+    (is (= (->Success (->JArray [(->JNumber 1.0) (->JArray [(->JNumber 2.0)])]) (->State "[1, [2]]" 8)) (run j-array (->State "[1, [2]]" 0)))))
+  (testing "fail"
+    (is (= (failure "array" \} 2) (run j-array (->State "[1}" 0))))))
+
+(deftest json-object
+  (testing "simple"
+    (is (= (->Success (->JObject {:foo (->JString "bar")}) (->State "{\"foo\":\"bar\"}" 13)) (run j-object (->State "{\"foo\":\"bar\"}" 0)))))
+  (testing "two keys"
+    (is (= (->Success (->JObject {:foo (->JString "bar") :baz (->JNumber 1.0)}) (->State "{\"foo\":\"bar\", \"baz\":1}" 22)) (run j-object (->State "{\"foo\":\"bar\", \"baz\":1}" 0)))))
+  (testing "nested object"
+    (is (= (->Success (->JObject {:foo (->JObject {:baz (->JNumber 1.0)})}) (->State "{\"foo\" : {\"baz\": 1}}" 20)) (run j-object (->State "{\"foo\" : {\"baz\": 1}}" 0)))))
+  (testing "fail"
+    (is (= (failure "object" \] 9) (run j-object (->State "{\"foo\": 1]" 0))))))
